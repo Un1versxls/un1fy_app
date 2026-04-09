@@ -1,227 +1,122 @@
+//
+//  GradientButton.swift
+//  DRIVE
+//
+//  Created by Kilo on 07/04/2026.
+//
+
 import SwiftUI
 
-struct GradientButton: View {
-    let title: String
-    let icon: String?
-    let action: () -> Void
+@available(iOS 15.0, *)
+public struct GradientButton: View {
+    public enum Style {
+        case primary
+        case secondary
+        case outline
+    }
     
-    @State private var isPressed = false
-    @State private var isHovering = false
-    @State private var glowIntensity: Double = 0.3
+    public let title: String
+    public let style: Style
+    public let isLoading: Bool
+    public let action: () -> Void
     
-    var gradient: LinearGradient = .drivePrimary
-    var isEnabled: Bool = true
-    var fullWidth: Bool = true
-    var height: CGFloat = 56
-    var cornerRadius: CGFloat = DriveRadius.lg
+    @State private var isPressed: Bool = false
     
-    init(
-        _ title: String,
-        icon: String? = nil,
-        gradient: LinearGradient = .drivePrimary,
-        isEnabled: Bool = true,
-        fullWidth: Bool = true,
-        height: CGFloat = 56,
-        cornerRadius: CGFloat = DriveRadius.lg,
+    public init(
+        title: String,
+        style: Style = .primary,
+        isLoading: Bool = false,
         action: @escaping () -> Void
     ) {
         self.title = title
-        self.icon = icon
-        self.gradient = gradient
-        self.isEnabled = isEnabled
-        self.fullWidth = fullWidth
-        self.height = height
-        self.cornerRadius = cornerRadius
+        self.style = style
+        self.isLoading = isLoading
         self.action = action
     }
     
-    var body: some View {
+    public var body: some View {
         Button(action: {
-            guard isEnabled else { return }
-            withAnimation(DriveAnimations.fast) {
+            withAnimation(Theme.Animation.fast) {
                 isPressed = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                withAnimation(DriveAnimations.fast) {
-                    isPressed = false
-                }
-                action()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isPressed = false
             }
+            action()
         }) {
-            HStack(spacing: DriveSpacing.sm) {
-                if let icon = icon {
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
+            ZStack {
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: foregroundColor))
+                        .scaleEffect(1.0)
+                } else {
+                    Text(title)
+                        .font(Theme.Typography.headline)
+                        .foregroundColor(foregroundColor)
                 }
-                
-                Text(title)
-                    .font(.driveHeadline)
-                    .fontWeight(.semibold)
-            }
-            .frame(maxWidth: fullWidth ? .infinity : nil)
-            .frame(height: height)
-            .foregroundStyle(.white)
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(isEnabled ? gradient : LinearGradient(colors: [.driveSurfaceElevated, .driveSurface], startPoint: .leading, endPoint: .trailing))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(
-                        isEnabled ? Color.white.opacity(0.2) : Color.clear,
-                        lineWidth: 1
-                    )
-            )
-            .glow(
-                color: .drivePurple,
-                radius: isHovering ? 25 : 15,
-                intensity: glowIntensity
-            )
-            .scaleEffect(isPressed ? 0.96 : 1.0)
-            .opacity(isEnabled ? 1.0 : 0.5)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(!isEnabled)
-        .onHover { hovering in
-            guard isEnabled else { return }
-            withAnimation(DriveAnimations.standard) {
-                isHovering = hovering
-                glowIntensity = hovering ? 0.6 : 0.3
-            }
-        }
-    }
-}
-
-// MARK: - Outline Variant
-
-struct GradientOutlineButton: View {
-    let title: String
-    let icon: String?
-    let action: () -> Void
-    
-    @State private var isPressed = false
-    @State private var isHovering = false
-    
-    init(
-        _ title: String,
-        icon: String? = nil,
-        action: @escaping () -> Void
-    ) {
-        self.title = title
-        self.icon = icon
-        self.action = action
-    }
-    
-    var body: some View {
-        Button(action: {
-            withAnimation(DriveAnimations.fast) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                withAnimation(DriveAnimations.fast) {
-                    isPressed = false
-                }
-                action()
-            }
-        }) {
-            HStack(spacing: DriveSpacing.sm) {
-                if let icon = icon {
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
-                }
-                
-                Text(title)
-                    .font(.driveHeadline)
-                    .fontWeight(.semibold)
-                    .gradientText(.drivePrimary)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(
-                RoundedRectangle(cornerRadius: DriveRadius.lg)
-                    .fill(Color.driveGlassBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: DriveRadius.lg)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: isHovering ? [.drivePurple, .driveBlue] : [.driveGlassBorder, .driveGlassBorder],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: isHovering ? 2 : 1
-                    )
-            )
-            .scaleEffect(isPressed ? 0.96 : 1.0)
+            .background(backgroundContent)
+            .cornerRadius(Theme.CornerRadius.medium)
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .opacity(isPressed ? 0.9 : 1.0)
+            .animation(Theme.Animation.fast, value: isPressed)
         }
-        .buttonStyle(PlainButtonStyle())
-        .onHover { hovering in
-            withAnimation(DriveAnimations.standard) {
-                isHovering = hovering
-            }
+        .disabled(isLoading)
+        .accessibilityLabel(title)
+        .accessibilityHint("Button")
+        .accessibilityAddTraits(.isButton)
+    }
+    
+    @ViewBuilder
+    private var backgroundContent: some View {
+        switch style {
+        case .primary:
+            LinearGradient(
+                colors: Theme.Colors.primaryGradient,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+        case .secondary:
+            Theme.Colors.secondaryBackground
+            
+        case .outline:
+            RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
+                .stroke(Theme.Colors.primaryLight, lineWidth: 1.5)
+        }
+    }
+    
+    private var foregroundColor: Color {
+        switch style {
+        case .primary: .white
+        case .secondary: Theme.Colors.textPrimary
+        case .outline: Theme.Colors.primaryLight
         }
     }
 }
 
-// MARK: - Icon Button
-
-struct GradientIconButton: View {
-    let icon: String
-    let action: () -> Void
-    
-    @State private var isPressed = false
-    @State private var isHovering = false
-    
-    var size: CGFloat = 48
-    
-    var body: some View {
-        Button(action: {
-            withAnimation(DriveAnimations.fast) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                withAnimation(DriveAnimations.fast) {
-                    isPressed = false
-                }
-                action()
-            }
-        }) {
-            Image(systemName: icon)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: size, height: size)
-                .background(
-                    Circle()
-                        .fill(.drivePrimary)
-                )
-                .glow(color: .drivePurple, radius: isHovering ? 15 : 8, intensity: isHovering ? 0.5 : 0.3)
-                .scaleEffect(isPressed ? 0.9 : (isHovering ? 1.1 : 1.0))
+@available(iOS 15.0, *)
+struct GradientButton_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: Theme.Spacing.medium) {
+            GradientButton(title: "Primary Button", action: {})
+            GradientButton(title: "Secondary Button", style: .secondary, action: {})
+            GradientButton(title: "Outline Button", style: .outline, action: {})
+            GradientButton(title: "Loading", isLoading: true, action: {})
         }
-        .buttonStyle(PlainButtonStyle())
-        .onHover { hovering in
-            withAnimation(DriveAnimations.standard) {
-                isHovering = hovering
-            }
+        .padding()
+        .previewLayout(.sizeThatFits)
+        
+        VStack(spacing: Theme.Spacing.medium) {
+            GradientButton(title: "Primary Button", action: {})
+            GradientButton(title: "Secondary Button", style: .secondary, action: {})
+            GradientButton(title: "Outline Button", style: .outline, action: {})
         }
+        .padding()
+        .background(Color.black)
+        .preferredColorScheme(.dark)
+        .previewLayout(.sizeThatFits)
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    VStack(spacing: DriveSpacing.xl) {
-        GradientButton("Get Started", icon: "arrow.right")
-        
-        GradientButton("Secondary Action", isEnabled: false)
-        
-        GradientOutlineButton("Learn More", icon: "info.circle")
-        
-        HStack(spacing: DriveSpacing.base) {
-            GradientIconButton(icon: "heart.fill")
-            GradientIconButton(icon: "bookmark.fill")
-            GradientIconButton(icon: "share")
-        }
-    }
-    .padding()
-    .background(Color.driveBackground)
 }

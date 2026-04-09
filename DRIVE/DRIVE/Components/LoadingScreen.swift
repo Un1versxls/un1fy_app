@@ -1,189 +1,116 @@
+//
+//  LoadingScreen.swift
+//  DRIVE
+//
+//  Created by Kilo on 07/04/2026.
+//
+
 import SwiftUI
 
-struct LoadingScreen: View {
-    @Binding var isLoading: Bool
+@available(iOS 15.0, *)
+public struct LoadingScreen: View {
     @State private var logoScale: CGFloat = 0.8
-    @State private var logoOpacity: Double = 0
-    @State private var progress: CGFloat = 0
-    @State private var dotIndex = 0
-    @State private var subtitleOpacity: Double = 0
-    @State private var glowIntensity: Double = 0.3
+    @State private var logoOpacity: Double = 0.0
+    @State private var progress: Double = 0.0
+    @State private var rotationDegrees: Double = 0.0
     
-    var completion: (() -> Void)?
+    public var loadingMessage: String = "Preparing your experience..."
     
-    private let dots = ["", ".", "..", "..."]
+    public init(loadingMessage: String = "Preparing your experience...") {
+        self.loadingMessage = loadingMessage
+    }
     
-    var body: some View {
+    public var body: some View {
         ZStack {
-            BackgroundGradient()
+            Theme.Colors.background
+                .ignoresSafeArea()
             
-            VStack(spacing: DriveSpacing.xxl) {
-                Spacer()
-                
-                logoSection
-                
-                progressBarSection
-                
-                Spacer()
-                
-                versionLabel
-            }
-        }
-        .onAppear {
-            animateIn()
-            simulateLoading()
-        }
-    }
-    
-    // MARK: - Logo Section
-    
-    private var logoSection: some View {
-        VStack(spacing: DriveSpacing.md) {
-            Text("DRIVE")
-                .font(.system(size: 64, weight: .bold, design: .default))
-                .gradientText(.driveVibrant)
-                .scaleEffect(logoScale)
-                .opacity(logoOpacity)
-                .glow(color: .drivePurple, radius: 30, intensity: glowIntensity)
-            
-            Text("Elevate your workflow")
-                .font(.driveCallout)
-                .foregroundColor(.driveTextSecondary)
-                .opacity(subtitleOpacity)
-        }
-    }
-    
-    // MARK: - Progress Bar Section
-    
-    private var progressBarSection: some View {
-        VStack(spacing: DriveSpacing.base) {
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: DriveRadius.pill)
-                    .fill(Color.driveSurfaceElevated)
-                    .frame(height: 6)
-                
-                RoundedRectangle(cornerRadius: DriveRadius.pill)
-                    .fill(.drivePrimary)
-                    .frame(width: progress * UIScreen.main.bounds.width * 0.6, height: 6)
-                    .glow(color: .drivePurple, radius: 10, intensity: 0.6)
-            }
-            .frame(width: UIScreen.main.bounds.width * 0.6)
-            
-            HStack(spacing: DriveSpacing.xs) {
-                ForEach(0..<3) { index in
+            VStack(spacing: Theme.Spacing.xLarge) {
+                // Logo Animation
+                ZStack {
                     Circle()
-                        .fill(index <= dotIndex ? .drivePurple : .driveTextTertiary)
-                        .frame(width: 8, height: 8)
-                        .scaleEffect(index <= dotIndex ? 1.2 : 0.8)
-                        .animation(DriveAnimations.fast, value: dotIndex)
+                        .trim(from: 0.0, to: 0.75)
+                        .stroke(
+                            LinearGradient(
+                                colors: Theme.Colors.primaryGradient,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(rotationDegrees))
+                        .frame(width: 120, height: 120)
+                    
+                    Image(systemName: "steeringwheel")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 56, height: 56)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: Theme.Colors.primaryGradient,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .scaleEffect(logoScale)
+                        .opacity(logoOpacity)
                 }
+                
+                // Loading Text
+                Text(loadingMessage)
+                    .font(Theme.Typography.subheadline)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                
+                // Progress Indicator
+                ProgressView(value: progress)
+                    .progressViewStyle(LinearProgressViewStyle(tint: Theme.Colors.primaryLight))
+                    .frame(width: 180)
             }
-            .padding(.top, DriveSpacing.sm)
+            .padding(Theme.Spacing.xxLarge)
         }
-    }
-    
-    // MARK: - Version Label
-    
-    private var versionLabel: some View {
-        Text("v1.0.0")
-            .font(.driveCaption)
-            .foregroundColor(.driveTextTertiary)
-            .padding(.bottom, DriveSpacing.xxl)
-    }
-    
-    // MARK: - Animations
-    
-    private func animateIn() {
-        withAnimation(DriveAnimations.bouncy.delay(0.2)) {
-            logoScale = 1.0
-            logoOpacity = 1.0
-        }
-        
-        withAnimation(DriveAnimations.smooth.delay(0.5)) {
-            subtitleOpacity = 1.0
-        }
-        
-        withAnimation(DriveAnimations.pulse.delay(0.8)) {
-            glowIntensity = 0.5
-        }
-        
-        animateDots()
-    }
-    
-    private func animateDots() {
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
-            guard isLoading else {
-                timer.invalidate()
-                return
-            }
-            withAnimation(DriveAnimations.fast) {
-                dotIndex = (dotIndex + 1) % 4
-            }
-        }
-    }
-    
-    private func simulateLoading() {
-        let duration: TimeInterval = 2.5
-        let interval: TimeInterval = 0.05
-        let increment = interval / duration
-        
-        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
-            guard isLoading else {
-                timer.invalidate()
-                return
-            }
-            
-            withAnimation(.linear(duration: interval)) {
-                progress = min(progress + increment, 1.0)
-            }
-            
-            if progress >= 1.0 {
-                timer.invalidate()
-                withAnimation(DriveAnimations.standard) {
-                    isLoading = false
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    completion?()
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Background Gradient
-
-struct BackgroundGradient: View {
-    @State private var offset: CGFloat = -0.5
-    
-    var body: some View {
-        LinearGradient(
-            colors: [
-                Color.driveBackground,
-                Color(hex: "1A1025"),
-                Color.driveBackground
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
-        .overlay(
-            RadialGradient(
-                colors: [.drivePurple.opacity(0.15), .clear],
-                center: .center,
-                startRadius: 50,
-                endRadius: 300
-            )
-            .offset(x: 0, y: offset * 100)
-            .animation(DriveAnimations.slow.repeatForever(autoreverses: true), value: offset)
-        )
+        .accessibilityLabel("Loading screen")
         .onAppear {
-            offset = 0.5
+            startAnimations()
+        }
+    }
+    
+    private func startAnimations() {
+        // Logo fade and scale
+        withAnimation(Theme.Animation.slow) {
+            logoOpacity = 1.0
+            logoScale = 1.0
+        }
+        
+        // Continuous rotation animation
+        withAnimation(.linear(duration: 2.0).repeatForever(autoreverses: false)) {
+            rotationDegrees = 360.0
+        }
+        
+        // Progress simulation
+        simulateProgress()
+    }
+    
+    private func simulateProgress() {
+        // Simulate loading progress over ~3 seconds
+        Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { timer in
+            withAnimation {
+                progress += 0.025
+                if progress >= 1.0 {
+                    timer.invalidate()
+                }
+            }
         }
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    LoadingScreen(isLoading: .constant(true))
+@available(iOS 15.0, *)
+struct LoadingScreen_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            LoadingScreen()
+            LoadingScreen()
+                .preferredColorScheme(.dark)
+        }
+    }
 }

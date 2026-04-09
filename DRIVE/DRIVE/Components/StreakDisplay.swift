@@ -1,273 +1,102 @@
+//
+//  StreakDisplay.swift
+//  DRIVE
+//
+//  Created by Kilo on 07/04/2026.
+//
+
 import SwiftUI
 
-struct StreakDisplay: View {
-    let count: Int
-    let label: String?
+@available(iOS 15.0, *)
+public struct StreakDisplay: View {
+    public let currentStreak: Int
+    public let bestStreak: Int
+    public let isActiveToday: Bool
     
-    @State private var fireScale: CGFloat = 1.0
-    @State private var fireOpacity: Double = 1.0
-    @State private var particleOffset: CGFloat = 0
-    @State private var glowPulse: Double = 0.3
+    @State private var animateFire: Bool = false
     
-    var body: some View {
-        HStack(spacing: DriveSpacing.sm) {
-            fireIcon
-            
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text("\(count)")
-                        .font(.system(size: 28, weight: .bold, design: .default))
-                        .gradientText(.driveVibrant)
-                    
-                    Text("day")
-                        .font(.driveCallout)
-                        .foregroundColor(.driveTextSecondary)
-                }
-                
-                if let label = label {
-                    Text(label)
-                        .font(.driveCaption)
-                        .foregroundColor(.driveTextTertiary)
-                }
-            }
-        }
-        .padding(.horizontal, DriveSpacing.base)
-        .padding(.vertical, DriveSpacing.md)
-        .glassMorphism(
-            backgroundOpacity: 0.05,
-            borderOpacity: 0.15,
-            cornerRadius: DriveRadius.xl
-        )
-        .overlay(
-            GeometryReader { geo in
-                ZStack {
-                    ForEach(0..<5) { i in
-                        fireParticle(index: i)
-                            .offset(
-                                x: CGFloat.random(in: -10...10),
-                                y: -particleOffset - CGFloat(i) * 8
-                            )
-                            .opacity(fireOpacity * (1.0 - Double(i) * 0.15))
-                    }
-                }
-                .frame(width: geo.size.width, height: geo.size.height)
-            }
-            .opacity(count > 0 ? 1 : 0)
-        )
-        .glow(color: .drivePurple, radius: 15, intensity: glowPulse)
-        .onAppear {
-            animateFire()
-        }
+    public init(currentStreak: Int, bestStreak: Int, isActiveToday: Bool = true) {
+        self.currentStreak = currentStreak
+        self.bestStreak = bestStreak
+        self.isActiveToday = isActiveToday
     }
     
-    // MARK: - Fire Icon
-    
-    private var fireIcon: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [.driveWarning.opacity(0.3), .clear],
-                        center: .center,
-                        startRadius: 5,
-                        endRadius: 25
-                    )
-                )
-                .frame(width: 50, height: 50)
-                .scaleEffect(fireScale)
-            
-            Image(systemName: count >= 7 ? "flame.fill" : "fire")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: count >= 7 ? [.driveWarning, .driveError, .drivePink] : [.driveWarning, .driveError],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                )
-                .scaleEffect(fireScale)
-        }
-    }
-    
-    // MARK: - Fire Particles
-    
-    private func fireParticle(index: Int) -> some View {
-        Circle()
-            .fill(
-                RadialGradient(
-                    colors: [.driveWarning, .driveError.opacity(0.5), .clear],
-                    center: .center,
-                    startRadius: 1,
-                    endRadius: 4
-                )
-            )
-            .frame(width: 4, height: 4)
-            .offset(x: CGFloat.random(in: -15...15), y: 0)
-    }
-    
-    // MARK: - Animations
-    
-    private func animateFire() {
-        withAnimation(DriveAnimations.pulse) {
-            fireScale = 1.1
-        }
-        
-        withAnimation(DriveAnimations.pulse.delay(0.2)) {
-            glowPulse = 0.6
-        }
-        
-        Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { timer in
-            withAnimation(DriveAnimations.fast) {
-                particleOffset += 5
-                fireOpacity = Double.random(in: 0.7...1.0)
-            }
-        }
-    }
-}
-
-// MARK: - Compact Variant
-
-struct StreakDisplayCompact: View {
-    let count: Int
-    
-    @State private var pulseScale: CGFloat = 1.0
-    
-    var body: some View {
-        HStack(spacing: DriveSpacing.xs) {
-            Image(systemName: count >= 7 ? "flame.fill" : "fire")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.driveWarning, .driveError],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                )
-                .scaleEffect(pulseScale)
-            
-            Text("\(count)")
-                .font(.driveFootnote)
-                .fontWeight(.semibold)
-                .foregroundColor(.driveTextPrimary)
-        }
-        .padding(.horizontal, DriveSpacing.sm)
-        .padding(.vertical, DriveSpacing.xs)
-        .background(
-            Capsule()
-                .fill(Color.driveGlassBackground)
-                .overlay(
-                    Capsule()
-                        .strokeBorder(Color.driveGlassBorder, lineWidth: 1)
-                )
-        )
-        .onAppear {
-            withAnimation(DriveAnimations.pulse) {
-                pulseScale = 1.15
-            }
-        }
-    }
-}
-
-// MARK: - Large Variant
-
-struct StreakDisplayLarge: View {
-    let count: Int
-    let milestone: String?
-    
-    @State private var energyRings: [Double] = [0, 0, 0]
-    @State private var mainScale: CGFloat = 1.0
-    
-    var body: some View {
-        VStack(spacing: DriveSpacing.md) {
-            ZStack {
-                ForEach(0..<3) { index in
-                    Circle()
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [.driveWarning.opacity(0.3 - Double(index) * 0.08), .clear],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ),
-                            lineWidth: 2
+    public var body: some View {
+        VStack(spacing: Theme.Spacing.small) {
+            HStack(spacing: Theme.Spacing.medium) {
+                // Fire Icon Animation
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Theme.Colors.accent, Theme.Colors.accentLight],
+                            startPoint: .bottom,
+                            endPoint: .top
                         )
-                        .frame(width: 120 + CGFloat(index) * 30, height: 120 + CGFloat(index) * 30)
-                        .scaleEffect(energyRings[index] > 0 ? 1.0 + energyRings[index] * 0.1 : 1.0)
-                        .opacity(energyRings[index])
-                }
+                    )
+                    .scaleEffect(animateFire ? 1.1 : 0.9)
+                    .offset(y: animateFire ? -2 : 2)
+                    .opacity(animateFire ? 1.0 : 0.85)
                 
-                VStack(spacing: DriveSpacing.xs) {
-                    Image(systemName: count >= 14 ? "flame.fill" : (count >= 7 ? "fire" : "sparkle"))
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: count >= 14 ?
-                                    [.driveWarning, .driveError, .drivePink] :
-                                    (count >= 7 ? [.driveWarning, .driveError] : [.drivePurple, .driveBlue]),
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                        )
-                        .scaleEffect(mainScale)
-                        .glow(color: .driveWarning, radius: 20, intensity: 0.5)
-                    
-                    Text("\(count)")
-                        .font(.system(size: 42, weight: .bold, design: .default))
-                        .gradientText(.driveVibrant)
+                VStack(alignment: .leading, spacing: Theme.Spacing.xxSmall) {
+                    Text("\(currentStreak)")
+                        .font(Theme.Typography.largeTitle)
+                        .foregroundColor(Theme.Colors.textPrimary)
                     
                     Text("Day Streak")
-                        .font(.driveCallout)
-                        .foregroundColor(.driveTextSecondary)
+                        .font(Theme.Typography.subheadline)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: Theme.Spacing.xxSmall) {
+                    Text("Best")
+                        .font(Theme.Typography.caption1)
+                        .foregroundColor(Theme.Colors.textTertiary)
+                    
+                    Text("\(bestStreak) days")
+                        .font(Theme.Typography.title3)
+                        .foregroundColor(Theme.Colors.textPrimary)
                 }
             }
             
-            if let milestone = milestone {
-                Text(milestone)
-                    .font(.driveFootnote)
-                    .foregroundColor(.driveWarning)
-                    .padding(.horizontal, DriveSpacing.base)
-                    .padding(.vertical, DriveSpacing.xs)
-                    .background(
-                        Capsule()
-                            .fill(.driveWarning.opacity(0.15))
-                    )
-            }
-        }
-        .padding(DriveSpacing.xl)
-        .glassMorphism(
-            backgroundOpacity: 0.05,
-            borderOpacity: 0.15,
-            cornerRadius: DriveRadius.xxl
-        )
-        .onAppear {
-            animateEnergyRings()
-        }
-    }
-    
-    private func animateEnergyRings() {
-        withAnimation(DriveAnimations.bouncy) {
-            mainScale = 1.05
-        }
-        
-        for i in 0..<3 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.2) {
-                withAnimation(DriveAnimations.slow.repeatForever(autoreverses: true)) {
-                    energyRings[i] = 1.0
+            // Activity indicator dots
+            HStack(spacing: Theme.Spacing.xSmall) {
+                ForEach(0..<7) { day in
+                    Circle()
+                        .fill(day < (currentStreak % 7) ? Theme.Colors.accent : Theme.Colors.gray300)
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(day == (currentStreak % 7 - 1) && isActiveToday ? 1.3 : 1.0)
                 }
             }
         }
+        .padding(Theme.Spacing.medium)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(Theme.CornerRadius.large)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.0).repeatForever()) {
+                animateFire = true
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Current streak \(currentStreak) days, best streak \(bestStreak) days")
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    VStack(spacing: DriveSpacing.xxl) {
-        StreakDisplay(count: 5, label: "Keep it going!")
-        
-        StreakDisplayCompact(count: 12)
-        
-        StreakDisplayLarge(count: 21, milestone: "🔥 3 Week Champion!")
+@available(iOS 15.0, *)
+struct StreakDisplay_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            StreakDisplay(currentStreak: 12, bestStreak: 18, isActiveToday: true)
+                .padding()
+                .previewLayout(.sizeThatFits)
+            
+            StreakDisplay(currentStreak: 5, bestStreak: 7)
+                .padding()
+                .background(Color.black)
+                .preferredColorScheme(.dark)
+                .previewLayout(.sizeThatFits)
+        }
     }
-    .padding()
-    .background(Color.driveBackground)
 }

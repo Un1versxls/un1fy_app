@@ -1,273 +1,124 @@
+//
+//  Theme.swift
+//  DRIVE
+//
+//  Created by Kilo on 07/04/2026.
+//
+
 import SwiftUI
 
-// MARK: - Color Palette
-
-extension Color {
-    static let driveBackground = Color(hex: "0F0F0F")
-    static let driveSurface = Color(hex: "1A1A1A")
-    static let driveSurfaceElevated = Color(hex: "242424")
+// MARK: - Color Theme
+@available(iOS 15.0, *)
+public enum Theme {
+    // MARK: - Color Palette
+    public enum Colors {
+        // Primary Colors
+        public static let primaryLight = Color(red: 0.38, green: 0.25, blue: 0.93)
+        public static let primaryDark = Color(red: 0.57, green: 0.46, blue: 0.97)
+        public static let primaryGradient = [primaryLight, primaryDark]
+        
+        // Secondary Colors
+        public static let accent = Color(red: 0.99, green: 0.41, blue: 0.07)
+        public static let accentLight = Color(red: 1.0, green: 0.68, blue: 0.32)
+        
+        // Neutral Colors
+        public static let background = Color(UIColor.systemBackground)
+        public static let secondaryBackground = Color(UIColor.secondarySystemBackground)
+        public static let tertiaryBackground = Color(UIColor.tertiarySystemBackground)
+        
+        public static let textPrimary = Color(UIColor.label)
+        public static let textSecondary = Color(UIColor.secondaryLabel)
+        public static let textTertiary = Color(UIColor.tertiaryLabel)
+        
+        public static let border = Color(UIColor.separator)
+        
+        // Semantic Colors
+        public static let success = Color(red: 0.20, green: 0.78, blue: 0.35)
+        public static let warning = Color(red: 0.95, green: 0.74, blue: 0.0)
+        public static let error = Color(red: 0.91, green: 0.26, blue: 0.22)
+        public static let info = Color(red: 0.0, green: 0.48, blue: 1.0)
+        
+        // Shades
+        public static let gray100 = Color(white: 0.95)
+        public static let gray200 = Color(white: 0.90)
+        public static let gray300 = Color(white: 0.82)
+        public static let gray400 = Color(white: 0.70)
+        public static let gray500 = Color(white: 0.55)
+        public static let gray600 = Color(white: 0.40)
+        public static let gray700 = Color(white: 0.27)
+        public static let gray800 = Color(white: 0.17)
+        public static let gray900 = Color(white: 0.08)
+    }
     
-    static let drivePurple = Color(hex: "8B5CF6")
-    static let driveBlue = Color(hex: "3B82F6")
-    static let drivePink = Color(hex: "EC4899")
-    static let driveCyan = Color(hex: "06B6D4")
+    // MARK: - Typography
+    public enum Typography {
+        // Display
+        public static let largeTitle = Font.system(size: 34, weight: .bold, design: .default)
+        public static let title1 = Font.system(size: 28, weight: .bold, design: .default)
+        public static let title2 = Font.system(size: 22, weight: .semibold, design: .default)
+        public static let title3 = Font.system(size: 20, weight: .semibold, design: .default)
+        
+        // Body
+        public static let headline = Font.system(size: 17, weight: .semibold, design: .default)
+        public static let body = Font.system(size: 17, weight: .regular, design: .default)
+        public static let callout = Font.system(size: 16, weight: .regular, design: .default)
+        public static let subheadline = Font.system(size: 15, weight: .medium, design: .default)
+        
+        // Caption
+        public static let footnote = Font.system(size: 13, weight: .regular, design: .default)
+        public static let caption1 = Font.system(size: 12, weight: .regular, design: .default)
+        public static let caption2 = Font.system(size: 11, weight: .medium, design: .default)
+    }
     
-    static let driveTextPrimary = Color.white
-    static let driveTextSecondary = Color(hex: "A1A1AA")
-    static let driveTextTertiary = Color(hex: "71717A")
+    // MARK: - Spacing
+    public enum Spacing {
+        public static let xxSmall: CGFloat = 4
+        public static let xSmall: CGFloat = 8
+        public static let small: CGFloat = 12
+        public static let medium: CGFloat = 16
+        public static let large: CGFloat = 20
+        public static let xLarge: CGFloat = 24
+        public static let xxLarge: CGFloat = 32
+        public static let xxxLarge: CGFloat = 48
+    }
     
-    static let driveSuccess = Color(hex: "10B981")
-    static let driveWarning = Color(hex: "F59E0B")
-    static let driveError = Color(hex: "EF4444")
+    // MARK: - Corner Radius
+    public enum CornerRadius {
+        public static let small: CGFloat = 6
+        public static let medium: CGFloat = 10
+        public static let large: CGFloat = 16
+        public static let extraLarge: CGFloat = 24
+        public static let full: CGFloat = .infinity
+    }
     
-    static let driveGlassBackground = Color.white.opacity(0.03)
-    static let driveGlassBorder = Color.white.opacity(0.1)
-    static let driveGlassBorderLight = Color.white.opacity(0.05)
-}
-
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3:
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6:
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8:
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
+    // MARK: - Animation
+    public enum Animation {
+        public static let fast = SwiftUI.Animation.easeOut(duration: 0.15)
+        public static let standard = SwiftUI.Animation.easeInOut(duration: 0.3)
+        public static let slow = SwiftUI.Animation.easeInOut(duration: 0.5)
+        public static let bounce = SwiftUI.Animation.interpolatingSpring(stiffness: 300, damping: 15)
     }
 }
 
-// MARK: - Gradients
-
-extension LinearGradient {
-    static let drivePrimary = LinearGradient(
-        colors: [.drivePurple, .driveBlue],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-    
-    static let driveVibrant = LinearGradient(
-        colors: [.drivePurple, .drivePink, .driveBlue],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-    
-    static let driveSubtle = LinearGradient(
-        colors: [.drivePurple.opacity(0.8), .driveBlue.opacity(0.8)],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-    
-    static let driveSuccess = LinearGradient(
-        colors: [.driveSuccess, .driveCyan],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-    
-    static let driveGlow = LinearGradient(
-        colors: [.drivePurple.opacity(0.4), .driveBlue.opacity(0.4), .drivePurple.opacity(0.4)],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-}
-
-// MARK: - Typography
-
-struct DriveTypography {
-    struct Sizes {
-        static let largeTitle: CGFloat = 34
-        static let title1: CGFloat = 28
-        static let title2: CGFloat = 22
-        static let title3: CGFloat = 20
-        static let headline: CGFloat = 17
-        static let body: CGFloat = 17
-        static let callout: CGFloat = 16
-        static let subheadline: CGFloat = 15
-        static let footnote: CGFloat = 13
-        static let caption1: CGFloat = 12
-        static let caption2: CGFloat = 11
+// MARK: - View Modifiers
+@available(iOS 15.0, *)
+public extension View {
+    func cardStyle() -> some View {
+        self
+            .background(Theme.Colors.secondaryBackground)
+            .cornerRadius(Theme.CornerRadius.large)
+            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
     }
     
-    struct Weights {
-        static let bold: Font.Weight = .bold
-        static let semibold: Font.Weight = .semibold
-        static let medium: Font.Weight = .medium
-        static let regular: Font.Weight = .regular
-        static let light: Font.Weight = .light
+    func standardPadding() -> some View {
+        self.padding(Theme.Spacing.medium)
     }
-}
-
-extension Font {
-    static let driveLargeTitle = Font.system(size: DriveTypography.Sizes.largeTitle, weight: .bold, design: .default)
-    static let driveTitle1 = Font.system(size: DriveTypography.Sizes.title1, weight: .bold, design: .default)
-    static let driveTitle2 = Font.system(size: DriveTypography.Sizes.title2, weight: .semibold, design: .default)
-    static let driveTitle3 = Font.system(size: DriveTypography.Sizes.title3, weight: .semibold, design: .default)
-    static let driveHeadline = Font.system(size: DriveTypography.Sizes.headline, weight: .semibold, design: .default)
-    static let driveBody = Font.system(size: DriveTypography.Sizes.body, weight: .regular, design: .default)
-    static let driveCallout = Font.system(size: DriveTypography.Sizes.callout, weight: .medium, design: .default)
-    static let driveSubheadline = Font.system(size: DriveTypography.Sizes.subheadline, weight: .regular, design: .default)
-    static let driveFootnote = Font.system(size: DriveTypography.Sizes.footnote, weight: .medium, design: .default)
-    static let driveCaption = Font.system(size: DriveTypography.Sizes.caption1, weight: .medium, design: .default)
-}
-
-// MARK: - Spacing
-
-struct DriveSpacing {
-    static let none: CGFloat = 0
-    static let xxs: CGFloat = 2
-    static let xs: CGFloat = 4
-    static let sm: CGFloat = 8
-    static let md: CGFloat = 12
-    static let base: CGFloat = 16
-    static let lg: CGFloat = 20
-    static let xl: CGFloat = 24
-    static let xxl: CGFloat = 32
-    static let xxxl: CGFloat = 40
-    static let huge: CGFloat = 48
-    static let massive: CGFloat = 64
-}
-
-// MARK: - Corner Radius
-
-struct DriveRadius {
-    static let xs: CGFloat = 6
-    static let sm: CGFloat = 8
-    static let md: CGFloat = 12
-    static let lg: CGFloat = 16
-    static let xl: CGFloat = 20
-    static let xxl: CGFloat = 24
-    static let pill: CGFloat = 9999
-}
-
-// MARK: - Shadows & Glows
-
-struct DriveShadows {
-    static let soft = ShadowStyle(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
-    static let medium = ShadowStyle(color: .black.opacity(0.4), radius: 20, x: 0, y: 8)
-    static let large = ShadowStyle(color: .black.opacity(0.5), radius: 40, x: 0, y: 16)
     
-    static let purpleGlow = ShadowStyle(color: .drivePurple.opacity(0.5), radius: 20, x: 0, y: 0)
-    static let blueGlow = ShadowStyle(color: .driveBlue.opacity(0.5), radius: 20, x: 0, y: 0)
-    static let primaryGlow = ShadowStyle(color: .drivePurple.opacity(0.4), radius: 25, x: 0, y: 0)
-}
-
-struct ShadowStyle {
-    let color: Color
-    let radius: CGFloat
-    let x: CGFloat
-    let y: CGFloat
-}
-
-// MARK: - Animation Curves
-
-struct DriveAnimations {
-    static let fast = Animation.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 0.2)
-    static let standard = Animation.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.3)
-    static let slow = Animation.spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.4)
-    static let bouncy = Animation.spring(response: 0.6, dampingFraction: 0.5, blendDuration: 0.5)
-    static let smooth = Animation.easeInOut(duration: 0.35)
-    static let pulse = Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)
-    static let shimmer = Animation.linear(duration: 1.5).repeatForever(autoreverses: false)
-}
-
-// MARK: - Glass Morphism Modifier
-
-struct GlassMorphism: ViewModifier {
-    var backgroundOpacity: Double = 0.03
-    var borderOpacity: Double = 0.1
-    var cornerRadius: CGFloat = DriveRadius.lg
-    var blurRadius: CGFloat = 20
+    func fullWidth() -> some View {
+        self.frame(maxWidth: .infinity, alignment: .leading)
+    }
     
-    func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.ultraThinMaterial)
-                    .opacity(backgroundOpacity)
-            )
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(Color.driveGlassBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(borderOpacity),
-                                Color.white.opacity(borderOpacity * 0.5)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-    }
-}
-
-extension View {
-    func glassMorphism(
-        backgroundOpacity: Double = 0.03,
-        borderOpacity: Double = 0.1,
-        cornerRadius: CGFloat = DriveRadius.lg
-    ) -> some View {
-        modifier(GlassMorphism(
-            backgroundOpacity: backgroundOpacity,
-            borderOpacity: borderOpacity,
-            cornerRadius: cornerRadius
-        ))
-    }
-}
-
-// MARK: - Gradient Text Modifier
-
-struct GradientText: ViewModifier {
-    let gradient: LinearGradient
-    
-    func body(content: Content) -> some View {
-        content
-            .foregroundStyle(gradient)
-    }
-}
-
-extension View {
-    func gradientText(_ gradient: LinearGradient = .drivePrimary) -> some View {
-        modifier(GradientText(gradient: gradient))
-    }
-}
-
-// MARK: - Glow Effect Modifier
-
-struct GlowEffect: ViewModifier {
-    let color: Color
-    let radius: CGFloat
-    let intensity: Double
-    
-    func body(content: Content) -> some View {
-        content
-            .shadow(color: color.opacity(intensity), radius: radius * 0.5, x: 0, y: 0)
-            .shadow(color: color.opacity(intensity * 0.5), radius: radius, x: 0, y: 0)
-    }
-}
-
-extension View {
-    func glow(color: Color = .drivePurple, radius: CGFloat = 20, intensity: Double = 0.5) -> some View {
-        modifier(GlowEffect(color: color, radius: radius, intensity: intensity))
+    func centered() -> some View {
+        self.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
